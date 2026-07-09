@@ -7,6 +7,6 @@ router.post("/signup", signupUser)
 router.post("/login", loginUser)
 router.post("/logout", logoutUser)
 router.post("/refresh-token", refreshAccessToken)
-// router.get("/profile", protectedRoute, getProfile)
+// router.get("/profile", protectRoute, getProfile)
 
 export default router
