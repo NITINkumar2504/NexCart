@@ -128,13 +128,14 @@ const refreshAccessToken = async (req, res) => {
     }
 }
 
-// const getProfile = async (req, res) => {
-//     try {
-        
-//     } 
-//     catch (error) {
-        
-//     }
-// }
+const getProfile = async (req, res) => {
+    try {
+        return res.json(req.user)
+    } 
+    catch (error) {
+        console.log("Error in getProfile controller", error.message)
+        return res.status(500).json({message: "Server error"})
+    }
+}
 
-export { signupUser, logoutUser, loginUser, refreshAccessToken }
+export { signupUser, logoutUser, loginUser, refreshAccessToken, getProfile }
