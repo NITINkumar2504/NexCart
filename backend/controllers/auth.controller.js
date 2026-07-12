@@ -35,6 +35,8 @@ const signupUser = async (req, res) => {
     try {
         const userExist = await User.findOne({email})
         if(userExist) return res.status(400).json({ message: "User already exists" })
+        if(password.length < 6) return res.status(400).json({ message: "Password must be atleast 6 characters long"})
+
     
         const user = await User.create({ name, email, password })
 
