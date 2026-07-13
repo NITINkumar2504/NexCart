@@ -56,9 +56,9 @@ const useUserStore = create((set) => ({
             const res = await axios.get("/auth/profile")
             set({ user: res.data, checkingAuth: false})
         } 
-        catch (error) {
+        catch {
             set({ checkingAuth: false, user: null })
-            toast.error(error.response?.data?.message || "An error occurred")
+            // toast.error(error.response?.data?.message || "An error occurred")
         }
     },
 

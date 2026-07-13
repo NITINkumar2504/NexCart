@@ -85,6 +85,7 @@ const deleteProduct = async (req, res) => {
         }
 
         await Product.findByIdAndDelete(req.params.id)
+        await updateFeaturedProductsCache()
         res.json({ message: "Product deleted successfully" })
     } 
     catch (error) {
@@ -123,7 +124,7 @@ const getProductsByCategory = async (req, res) => {
 
     try {
         const products = await Product.find({ category })
-        return res.json(products)
+        return res.json({ products })
     } 
     catch (error) {
         console.log("Error in getProductsByCategory controller", error.message)

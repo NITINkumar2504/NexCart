@@ -1,12 +1,16 @@
+import { useEffect } from "react"
 import { Navigate, Route, Routes } from "react-router"
+import { Toaster } from "react-hot-toast"
+
 import HomePage from "./pages/HomePage"
 import LoginPage from "./pages/LoginPage"
 import SignupPage from "./pages/SignupPage"
-import Navbar from "./components/Navbar"
-import { Toaster } from "react-hot-toast"
-import { useUserStore } from "./stores/useUserStore.js"
-import { useEffect } from "react"
+import AdminPage from "./pages/AdminPage.jsx"
+import CategoryPage from "./pages/CategoryPage.jsx"
 import LoadingSpinner from "./components/LoadingSpinner.jsx"
+import Navbar from "./components/Navbar"
+
+import { useUserStore } from "./stores/useUserStore.js"
 
 function App() {
   const user = useUserStore(state => state.user)
@@ -32,9 +36,11 @@ function App() {
       <div className="relative z-50 pt-20">
         <Navbar />
         <Routes>
-          <Route path="/" element={user ? <HomePage /> : <Navigate to={"/login"} replace={true}/>}/>
+          <Route path="/" element={< HomePage/>} />
           <Route path="/signup" element={!user ? <SignupPage /> : <Navigate to={"/"} replace={true}/>}/>
           <Route path="/login" element={!user ? <LoginPage /> : <Navigate to={"/"} replace={true}/>}/>
+          <Route path="/secret-dashboard" element={(user && user.role === 'admin') ? <AdminPage /> : <Navigate to={"/"} replace={true}/>}/>
+          <Route path="/category/:category" element={ <CategoryPage/> }/>
         </Routes>
       </div>
       <Toaster/>
