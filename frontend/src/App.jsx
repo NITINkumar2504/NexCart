@@ -7,19 +7,31 @@ import LoginPage from "./pages/LoginPage"
 import SignupPage from "./pages/SignupPage"
 import AdminPage from "./pages/AdminPage.jsx"
 import CategoryPage from "./pages/CategoryPage.jsx"
+import CartPage from "./pages/CartPage.jsx"
 import LoadingSpinner from "./components/LoadingSpinner.jsx"
 import Navbar from "./components/Navbar"
 
 import { useUserStore } from "./stores/useUserStore.js"
+import { useCartStore } from "./stores/useCartStore.js"
 
 function App() {
   const user = useUserStore(state => state.user)
   const checkAuth = useUserStore(state => state.checkAuth)
   const checkingAuth = useUserStore(state => state.checkingAuth)
+  const getCartItems = useCartStore(state => state.getCartItems)
+  const clearCart = useCartStore(state => state.clearCart)
 
   useEffect(() => { 
     checkAuth()
   }, [checkAuth])
+
+  useEffect(() => {
+    if (user) {
+    getCartItems();
+  } else {
+    clearCart();
+  }
+  }, [getCartItems, user, clearCart])
 
   if(checkingAuth) return <LoadingSpinner />
 
@@ -41,6 +53,7 @@ function App() {
           <Route path="/login" element={!user ? <LoginPage /> : <Navigate to={"/"} replace={true}/>}/>
           <Route path="/secret-dashboard" element={(user && user.role === 'admin') ? <AdminPage /> : <Navigate to={"/"} replace={true}/>}/>
           <Route path="/category/:category" element={ <CategoryPage/> }/>
+          <Route path="/cart" element={user? <CartPage/> : <Navigate to={'/'} replace={true}/>}/>
         </Routes>
       </div>
       <Toaster/>

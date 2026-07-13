@@ -7,8 +7,10 @@ const useCartStore = create((set, get) => ({
     coupon: null,
     total: 0,
     subtotal: 0,
+    isCouponApplied: false,
 
     getCartItems: async () => {
+        set({ cart: []})
         try {
             const res = await axios.get("/cart")
             set({ cart: res.data })  
@@ -19,6 +21,8 @@ const useCartStore = create((set, get) => ({
             toast.error(error.response?.data?.message || "An error occurred")
         }
     }, 
+
+    clearCart: () => set({ cart: [], coupon: null, subtotal: 0, total: 0, isCouponApplied: false }),
 
     addToCart: async (product) => {
         try {
@@ -53,6 +57,35 @@ const useCartStore = create((set, get) => ({
         }
 
         set({ subtotal, total })
+    },
+
+    removeFromCart: async (productId) => {
+        try {
+            // axios.delete accepts a config object; to send a request body use the `data` key
+            await axios.delete("/cart", { data: { productId } })
+            set(state => ({
+                cart: state.cart.filter(item => item._id !== productId)
+            }))
+
+            get().calculateTotals()
+        } 
+        catch (error) {
+            toast.error(error.response?.data?.message || "An error occurred");
+        }
+    },
+
+    updateQuantity: async (productId, quantity) => {
+        if(quantity === 0) {
+            get().removeFromCart(productId)
+            return 
+        }
+
+        await axios.put(`/cart/${productId}`, { quantity })
+        set(state => ({
+            cart: state.cart.map(item => item._id === productId ? {...item, quantity} : item)
+        }))
+
+        get().calculateTotals()
     },
 
 }))
