@@ -1,6 +1,7 @@
 import Coupon from "../models/coupon.model.js"
 import Order from "../models/order.model.js"
 import { stripe } from "../lib/stripe.js"
+import User from "../models/user.model.js";
 
 async function createStripeCoupon(discountPercentage) {
 	const coupon = await stripe.coupons.create({
@@ -36,7 +37,7 @@ const createCheckoutSession = async (req, res) => {
         let totalAmount = 0;
         const lineItems = products.map((product) => {
             const amount = Math.round(product.price * 100)  // stripe wants u to send in the format of cents
-            totalAmount += amount * product.quantity;
+            totalAmount += amount * (product.quantity || 1) ;
     
             return {
                 price_data: {
@@ -60,7 +61,7 @@ const createCheckoutSession = async (req, res) => {
         }
     
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ["card", "upi", "amazon_pay"],
+            payment_method_types: ["card", "upi"],
             line_items: lineItems,
             mode: "payment",
             success_url: `${process.env.CLIENT_URL}/purchase-success?session_id={CHECKOUT_SESSION_ID}`,
@@ -89,7 +90,7 @@ const createCheckoutSession = async (req, res) => {
             await createNewCoupon(req.user._id)  // for next purchase
         }
     
-        res.status(200).json({ id: session.id, totalAmount: totalAmount / 100 })  // cents to dollar
+        res.status(200).json({ id: session.id, url: session.url, totalAmount: totalAmount / 100 })  // cents to dollar
     } 
     catch (error) {
         console.log("Error in createCheckoutSession controller", error.message)
@@ -101,6 +102,12 @@ const checkoutSuccess = async (req, res) => {
     try {
         const { sessionId } = req.body
         const session = await stripe.checkout.sessions.retrieve(sessionId)
+
+        // Check if we've already created an order for this session
+        const existingOrder = await Order.findOne({stripeSessionId: sessionId});
+        if (existingOrder) {
+            return res.json({success: true, message: "Order already exists.", orderId: existingOrder._id});
+        }
         
         if(session.payment_status === "paid"){
 
@@ -122,6 +129,9 @@ const checkoutSuccess = async (req, res) => {
             })
 
             await newOrder.save()
+
+            await User.findByIdAndUpdate(session.metadata.userId, {cartItems: []});
+
             res.json({
                 success: true,
 				message: "Payment successful, order created, and coupon deactivated if used.",

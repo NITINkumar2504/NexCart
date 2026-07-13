@@ -13,6 +13,7 @@ import Navbar from "./components/Navbar"
 
 import { useUserStore } from "./stores/useUserStore.js"
 import { useCartStore } from "./stores/useCartStore.js"
+import PurchaseSuccessPage from "./pages/PurchaseSuccessPage.jsx"
 
 function App() {
   const user = useUserStore(state => state.user)
@@ -54,6 +55,7 @@ function App() {
           <Route path="/secret-dashboard" element={(user && user.role === 'admin') ? <AdminPage /> : <Navigate to={"/"} replace={true}/>}/>
           <Route path="/category/:category" element={ <CategoryPage/> }/>
           <Route path="/cart" element={user? <CartPage/> : <Navigate to={'/'} replace={true}/>}/>
+          <Route path="/purchase-success" element={user? <PurchaseSuccessPage/> : <Navigate to={'/'} replace={true}/>}/>
         </Routes>
       </div>
       <Toaster/>

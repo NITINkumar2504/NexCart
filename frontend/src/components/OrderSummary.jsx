@@ -2,14 +2,13 @@ import { motion } from "motion/react";
 import { useCartStore } from "../stores/useCartStore.js";
 import { Link } from "react-router";
 import { MoveRight } from "lucide-react";
-import { loadStripe } from "@stripe/stripe-js";
 import axios from "../lib/axios.js";
-
-const stripePromise = loadStripe(
-	"pk_test_51KZYccCoOZF2UhtOwdXQl3vcizup20zqKqT9hVUIsVzsdBrhqbUI2fE0ZdEVLdZfeHjeyFXtqaNsyCJCmZWnjNZa00PzMAjlcL"
-);
+import toast from "react-hot-toast";
+import { useState } from "react";
 
 const OrderSummary = () => {
+	const [isLoading, setIsLoading] = useState(false);
+
     const total = useCartStore(state => state.total)
     const subtotal = useCartStore(state => state.subtotal)
     const coupon = useCartStore(state => state.coupon)
@@ -22,21 +21,20 @@ const OrderSummary = () => {
 	const formattedSavings = savings.toFixed(2);
 
 	const handlePayment = async () => {
-		const stripe = await stripePromise;
-		const res = await axios.post("/payments/create-checkout-session", {
+		setIsLoading(true);
+		try {
+		const { data } = await axios.post("/payments/create-checkout-session", {
 			products: cart,
 			couponCode: coupon ? coupon.code : null,
 		});
 
-		const session = res.data;
-		const result = await stripe.redirectToCheckout({
-			sessionId: session.id,
-		});
-
-		if (result.error) {
-			console.error("Error:", result.error);
-		}
-	};
+		window.location.assign(data.url);
+	} catch (error) {
+		console.error("Payment Error:", error);
+		toast.error("Unable to start checkout. Please try again.");
+		setIsLoading(false);
+	}
+	};	
 
 	return (
 		<motion.div
@@ -77,9 +75,10 @@ const OrderSummary = () => {
 					className='flex w-full items-center justify-center rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300'
 					whileHover={{ scale: 1.05 }}
 					whileTap={{ scale: 0.95 }}
-					// onClick={handlePayment}
+					onClick={handlePayment}
+					disabled={isLoading}
 				>
-					Proceed to Checkout
+					{isLoading ? "Redirecting to Checkout..." : "Proceed to Checkout"}
 				</motion.button>
 
 				<div className='flex items-center justify-center gap-2'>
