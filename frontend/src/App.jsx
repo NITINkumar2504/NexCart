@@ -14,6 +14,7 @@ import Navbar from "./components/Navbar"
 import { useUserStore } from "./stores/useUserStore.js"
 import { useCartStore } from "./stores/useCartStore.js"
 import PurchaseSuccessPage from "./pages/PurchaseSuccessPage.jsx"
+import PurchaseCancelPage from "./pages/PurchaseCancelPage.jsx"
 
 function App() {
   const user = useUserStore(state => state.user)
@@ -56,6 +57,7 @@ function App() {
           <Route path="/category/:category" element={ <CategoryPage/> }/>
           <Route path="/cart" element={user? <CartPage/> : <Navigate to={'/'} replace={true}/>}/>
           <Route path="/purchase-success" element={user? <PurchaseSuccessPage/> : <Navigate to={'/'} replace={true}/>}/>
+          <Route path="/purchase-cancel" element={user? <PurchaseCancelPage/> : <Navigate to={'/'} replace={true}/>}/>
         </Routes>
       </div>
       <Toaster/>
