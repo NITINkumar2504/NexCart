@@ -13,7 +13,7 @@ async function createStripeCoupon(discountPercentage) {
 }
 
 async function createNewCoupon(userId) {
-	await Coupon.findOneAndDelete({ userId })
+	await Coupon.findOneAndDelete({ userId })    // one coupon at a time for a user, they cannot have two at the same time, even if it is not active (Delete the previous one before creating a new coupon)
 
 	const newCoupon = new Coupon({
 		code: "GIFT" + Math.random().toString(36).substring(2, 8).toUpperCase(),
