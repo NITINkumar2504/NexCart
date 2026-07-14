@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCartStore } from "../stores/useCartStore.js";
 import { useUserStore } from "../stores/useUserStore.js";
+import toast from "react-hot-toast";
 
 const FeaturedProducts = ({ featuredProducts }) => {
 	const [currentIndex, setCurrentIndex] = useState(0);
