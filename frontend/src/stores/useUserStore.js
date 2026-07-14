@@ -41,11 +41,11 @@ const useUserStore = create((set, get) => ({
 
     logout: async () => {
         try {
-            await axios.post("/auth/logout")
-            set({ user: null })
-        }
-        catch (error) {
-            toast.error(error.response?.data?.message || "An error occurred")
+            await axios.post("/auth/logout");
+        } catch (error) {
+            console.error(error);
+        } finally {
+            set({ user: null });
         }
     },
 
@@ -63,19 +63,15 @@ const useUserStore = create((set, get) => ({
     },
 
     refreshToken: async () => {
-		// Prevent multiple simultaneous refresh attempts
-		if (get().checkingAuth) return;
+        set({ checkingAuth: true });
 
-		set({ checkingAuth: true });
-		try {
-			const response = await axios.post("/auth/refresh-token");
-			set({ checkingAuth: false });
-			return response.data;
-		} catch (error) {
-			set({ user: null, checkingAuth: false });
-			throw error;
-		}
-	},
+        try {
+            const response = await axios.post("/auth/refresh-token");
+            return response.data;
+        } finally {
+            set({ checkingAuth: false });
+        }
+    }
 
 }))
 
@@ -86,31 +82,41 @@ export { useUserStore }
 let refreshPromise = null;
 
 axios.interceptors.response.use(
-	(response) => response,
-	async (error) => {
-		const originalRequest = error.config;
-		if (error.response?.status === 401 && !originalRequest._retry) {
-			originalRequest._retry = true;
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
 
-			try {
-				// If a refresh is already in progress, wait for it to complete
-				if (refreshPromise) {
-					await refreshPromise;
-					return axios(originalRequest);
-				}
+        if (!error.response) {
+            return Promise.reject(error);
+        }
 
-				// Start a new refresh process
-				refreshPromise = useUserStore.getState().refreshToken();
-				await refreshPromise;
-				refreshPromise = null;
+        const { status, data } = error.response;
 
-				return axios(originalRequest);
-			} catch (refreshError) {
-				// If refresh fails, redirect to login or handle as needed
-				useUserStore.getState().logout();
-				return Promise.reject(refreshError);
-			}
-		}
-		return Promise.reject(error);
-	}
+        // Only refresh if the access token has expired
+        if (
+            status === 401 &&
+            data?.message === "Unauthorized - Access token expired" &&
+            !originalRequest._retry
+        ) {
+            originalRequest._retry = true;
+
+            try {
+                if (!refreshPromise) {
+                    refreshPromise = useUserStore.getState().refreshToken();
+                }
+
+                await refreshPromise;
+
+                return axios(originalRequest);
+            } catch (refreshError) {
+                useUserStore.getState().logout();
+                return Promise.reject(refreshError);
+            } finally {
+                refreshPromise = null;
+            }
+        }
+
+        // For all other 401s (not logged in, invalid token, etc.)
+        return Promise.reject(error);
+    }
 );
