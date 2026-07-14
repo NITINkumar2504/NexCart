@@ -72,7 +72,7 @@ const getDailySalesData = async (startDate, endDate) => {
 			}
 		})
 	} catch (error) {
-		throw new error
+		throw new Error(error.message, { cause: error });
 	}
 }
 
