@@ -10,7 +10,7 @@ import cartRoutes from './routes/cart.route.js'
 import couponRoutes from './routes/coupon.route.js'
 import paymentRoutes from './routes/payment.route.js'
 import analyticsRoutes from './routes/analytics.route.js'
-import job from './lib/cron.js'
+// import job from './lib/cron.js'
 
 const app = express()
 
@@ -45,7 +45,7 @@ app.listen(PORT, async () => {
     await connectDB()
     console.log(`Server is running at PORT: ${PORT}`)
 
-    if(process.env.NODE_ENV === 'production'){
-        job.start()
-    }
+    // if(process.env.NODE_ENV === 'production'){
+    //     job.start()
+    // }
 })
